@@ -1,4 +1,5 @@
 version: 2
+# comment
 updates:
   - package-ecosystem: "npm"
     directory: "/"             # location of your package.json
