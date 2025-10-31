@@ -1,0 +1,27 @@
+name: Scheduled Maintenance
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # after every 30 minutes
+  workflow_dispatch:      # allows manual trigger
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run maintenance task
+        run: |
+          echo "=== Maintenance job started at $(date) ===" > maintenance.log
+          echo "Performing system check..." >> maintenance.log
+          echo "All systems operational." >> maintenance.log
+          echo "=== Maintenance completed ===" >> maintenance.log
+          cat maintenance.log
+
+      - name: Upload maintenance log
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-log
+          path: maintenance.log
