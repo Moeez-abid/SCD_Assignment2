@@ -1,0 +1,75 @@
+name: Automated Code Review
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-review:
+    name: Code Quality & Security Review
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      # Step 4: Lint for coding standards (ESLint)
+      - name: Run ESLint
+        run: |
+          if jq -e '.scripts.lint' package.json >/dev/null 2>&1; then
+            npm run lint || true
+          else
+            npx eslint . || true
+          fi
+        continue-on-error: true
+
+      # Step 5: Analyze code quality (SonarCloud)
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.host.url=https://sonarcloud.io
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
+
+      # Step 6: Security vulnerability scan (CodeQL)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # Step 7: Security scan (npm audit)
+      - name: Scan dependencies for vulnerabilities
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      # Step 8: Provide feedback as PR comment (reviewdog)
+      - name: Post ESLint feedback as PR comments
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: error
+
