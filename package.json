@@ -29,8 +29,9 @@
   "engines": {
     "node": ">=12.10.0"
   },
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
     "eslint": "^9.38.0",
     "jest": "^30.2.0"
   }
