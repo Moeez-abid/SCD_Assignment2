@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    name: Install → Lint → Test → Build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # If you have package-lock.json
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Lint (if configured)
+        run: |
+          if jq -e '.scripts.lint' package.json >/dev/null 2>&1; then
+            npm run lint
+          else
+            echo "No lint script found; skipping."
+          fi
+
+      - name: Run tests
+        run: |
+          if jq -e '.scripts.test' package.json >/dev/null 2>&1; then
+            npm test --silent
+          else
+            echo "No test script found; skipping."
+          fi
+
+      - name: Build (if present)
+        run: |
+          if jq -e '.scripts.build' package.json >/dev/null 2>&1; then
+            npm run build
+          else
+            echo "No build script found; skipping."
+          fi
+
+      - name: Upload build or test artifacts (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            coverage
+            build
+            dist
+            test-results
+            jest-results.xml
+            build.log

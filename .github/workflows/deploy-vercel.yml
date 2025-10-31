@@ -1,0 +1,47 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # allows manual trigger from Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build project
+        run: |
+          if jq -e '.scripts.build' package.json >/dev/null 2>&1; then
+            npm run build
+          else
+            echo "No build script found; skipping build."
+          fi
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: qUsD1U59KUvadEnUSzWS9BUH
+          vercel-org-id: TX1EGKySQu4xIt2J00LfV1Yk
+          vercel-project-id: prj_78ySpIyM6cTddHXD7cKOq7rw0pgg
+          working-directory: ./
