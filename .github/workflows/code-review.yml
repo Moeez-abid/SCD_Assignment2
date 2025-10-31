@@ -20,7 +20,6 @@ jobs:
         with:
           node-version: '18'
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -29,15 +28,17 @@ jobs:
             npm install
           fi
 
-      # Step 4: Lint for coding standards (ESLint)
-      - name: Run ESLint
+      # Add this to make sure ESLint is installed before running reviewdog
+      - name: Ensure ESLint is installed
         run: |
-          if jq -e '.scripts.lint' package.json >/dev/null 2>&1; then
-            npm run lint || true
-          else
-            npx eslint . || true
-          fi
-        continue-on-error: true
+          npx eslint -v || npm install --save-dev eslint
+
+      - name: Run ESLint with Reviewdog
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: error
 
       # Step 5: Analyze code quality (SonarCloud)
       - name: Run SonarCloud Scan
