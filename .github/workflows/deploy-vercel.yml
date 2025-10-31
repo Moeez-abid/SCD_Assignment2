@@ -43,5 +43,5 @@ jobs:
         with:
           vercel-token: qUsD1U59KUvadEnUSzWS9BUH
           vercel-org-id: TX1EGKySQu4xIt2J00LfV1Yk
-          vercel-project-id: prj_78ySpIyM6cTddHXD7cKOq7rw0pgg
+          vercel-project-id: prj_zjvZcIegU82OPPJsYmwWNJWncMZ4
           working-directory: ./
